@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 public class Controller : MonoBehaviour
@@ -11,7 +12,9 @@ public class Controller : MonoBehaviour
     public Transform cubeToPlace;
     private float camMoveToYPosition, camMoveSpeed = 2f;
 
-    public GameObject cubeToCreate, allCubes;
+    public Text scoreTxt;
+
+    public GameObject cubeToCreate, allCubes, vfx;
     public GameObject[] canvasStartPage;
     private Rigidbody allCubesRb;
     private bool isLose, firstCube;
@@ -38,6 +41,7 @@ public class Controller : MonoBehaviour
 
     private void Start()
     {
+        scoreTxt.text = "<size=40s>BEST SCORE:</size> " + PlayerPrefs.GetInt("score") + "\n<size=35s>score:</size> 0";
         toCameraColor = Camera.main.backgroundColor;
         mainCam = Camera.main.transform;
         camMoveToYPosition = 4f + nowCube.y - 1f;
@@ -68,6 +72,11 @@ public class Controller : MonoBehaviour
             nowCube.setVector(cubeToPlace.position);
             allCubesPositions.Add(nowCube.GetVector());
 
+            if (PlayerPrefs.GetString("music") == "Yes")
+                GetComponent<AudioSource>().Play();
+
+            Instantiate(vfx, newCube.transform.position, Quaternion.identity);
+
             allCubesRb.isKinematic = true;
             allCubesRb.isKinematic = false;
 
@@ -75,7 +84,7 @@ public class Controller : MonoBehaviour
             MoveCameraChangeBg();
         }
 
-        if(!isLose && allCubesRb.velocity.magnitude > 0.1f)
+        if (!isLose && allCubesRb.velocity.magnitude > 0.1f)
         {
             Destroy(cubeToPlace.gameObject);
             isLose = true;
@@ -155,6 +164,13 @@ public class Controller : MonoBehaviour
             if (Mathf.Abs(Convert.ToInt32(pos.z)) > maxZ)
                 maxZ = Convert.ToInt32(pos.z);
         }
+
+
+        maxY--;
+        if (PlayerPrefs.GetInt("score") < maxY)
+            PlayerPrefs.SetInt("score", maxY);
+
+        scoreTxt.text = "<size=40s>BEST SCORE:</size> " + PlayerPrefs.GetInt("score") + "\n<size=35s>score:</size> " + maxY;
         
         camMoveToYPosition = 4f + nowCube.y - 1f;
 
