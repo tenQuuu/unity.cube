@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-
 public class Controller : MonoBehaviour
 {
     private CubePos nowCube = new CubePos(0, 1, 0);
