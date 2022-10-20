@@ -14,7 +14,9 @@ public class Controller : MonoBehaviour
 
     public Text scoreTxt;
 
-    public GameObject cubeToCreate, allCubes, vfx;
+    public GameObject[] cubesToCreate;
+
+    public GameObject allCubes, vfx;
     public GameObject[] canvasStartPage;
     private Rigidbody allCubesRb;
     private bool isLose, firstCube;
@@ -39,157 +41,191 @@ public class Controller : MonoBehaviour
     private int prevCountMaxHorizontal;
     private Transform mainCam;
 
+    private List<GameObject> possibleCubesToCreate = new List<GameObject>();
+
     private void Start()
-    {
-        scoreTxt.text = "<size=40s>BEST SCORE:</size> " + PlayerPrefs.GetInt("score") + "\n<size=35s>score:</size> 0";
-        toCameraColor = Camera.main.backgroundColor;
-        mainCam = Camera.main.transform;
-        camMoveToYPosition = 4f + nowCube.y - 1f;
-
-        allCubesRb = allCubes.GetComponent<Rigidbody>();
-        StartCoroutine(ShowCubePlace());
-    }
-
-    private void Update()
-    {
-        if((Input.GetMouseButtonDown(0) || Input.touchCount > 0) && cubeToPlace != null && allCubes != null && !EventSystem.current.IsPointerOverGameObject())
         {
+        if (PlayerPrefs.GetInt("score") < 15)
+            possibleCubesToCreate.Add(cubesToCreate[0]);
+        else if (PlayerPrefs.GetInt("score") < 25)
+            AddPossibleCubes(2);
+        else if (PlayerPrefs.GetInt("score") < 40)
+            AddPossibleCubes(3);
+        else if (PlayerPrefs.GetInt("score") < 50)
+            AddPossibleCubes(4);
+        else if (PlayerPrefs.GetInt("score") < 60)
+            AddPossibleCubes(5);
+        else if (PlayerPrefs.GetInt("score") < 75)
+            AddPossibleCubes(6);
+        else if (PlayerPrefs.GetInt("score") < 90)
+            AddPossibleCubes(7);
+        else if (PlayerPrefs.GetInt("score") < 100)
+            AddPossibleCubes(8);
+        else
+            AddPossibleCubes(9);
+
+
+        scoreTxt.text = "<size=40s>BEST SCORE:</size> " + PlayerPrefs.GetInt("score") + "\n<size=35s>score:</size> 0";
+            toCameraColor = Camera.main.backgroundColor;
+            mainCam = Camera.main.transform;
+            camMoveToYPosition = 4f + nowCube.y - 1f;
+
+            allCubesRb = allCubes.GetComponent<Rigidbody>();
+            StartCoroutine(ShowCubePlace());
+        }
+
+        private void Update()
+        {
+            if ((Input.GetMouseButtonDown(0) || Input.touchCount > 0) && cubeToPlace != null && allCubes != null && !EventSystem.current.IsPointerOverGameObject())
+            {
 #if !UNITY_EDITOR
             if (Input.GetTouch(0).phase != TouchPhase.Began)
                 return;
 #endif
 
-            if (!firstCube)
-            {
-                firstCube = true;
-                foreach (GameObject obj in canvasStartPage)
-                    Destroy(obj);
+                if (!firstCube)
+                {
+                    firstCube = true;
+                    foreach (GameObject obj in canvasStartPage)
+                        Destroy(obj);
+                }
+
+                GameObject createCube = null;
+            if (possibleCubesToCreate.Count == 1)
+                createCube = possibleCubesToCreate[0];
+            else
+                createCube = possibleCubesToCreate[UnityEngine.Random.Range(0, possibleCubesToCreate.Count)];
+
+                GameObject newCube = Instantiate(createCube, cubeToPlace.position, Quaternion.identity) as GameObject;
+
+                newCube.transform.SetParent(allCubes.transform);
+                nowCube.setVector(cubeToPlace.position);
+                allCubesPositions.Add(nowCube.GetVector());
+
+                if (PlayerPrefs.GetString("music") == "Yes")
+                    GetComponent<AudioSource>().Play();
+
+                Instantiate(vfx, newCube.transform.position, Quaternion.identity);
+
+                allCubesRb.isKinematic = true;
+                allCubesRb.isKinematic = false;
+
+                SpawnPositions();
+                MoveCameraChangeBg();
             }
 
-            GameObject newCube = Instantiate(cubeToCreate, cubeToPlace.position, Quaternion.identity) as GameObject;
+            if (!isLose && allCubesRb.velocity.magnitude > 0.1f)
+            {
+                Destroy(cubeToPlace.gameObject);
+                isLose = true;
+                StopCoroutine(ShowCubePlace());
+            }
 
-            newCube.transform.SetParent(allCubes.transform);
-            nowCube.setVector(cubeToPlace.position);
-            allCubesPositions.Add(nowCube.GetVector());
+            mainCam.localPosition = Vector3.MoveTowards(mainCam.localPosition,
+                new Vector3(mainCam.localPosition.x, camMoveToYPosition, mainCam.localPosition.z),
+                camMoveSpeed * Time.deltaTime);
 
-            if (PlayerPrefs.GetString("music") == "Yes")
-                GetComponent<AudioSource>().Play();
+            if (Camera.main.backgroundColor != toCameraColor)
+                Camera.main.backgroundColor = Color.Lerp(Camera.main.backgroundColor, toCameraColor, Time.deltaTime / 1.5f);
 
-            Instantiate(vfx, newCube.transform.position, Quaternion.identity);
-
-            allCubesRb.isKinematic = true;
-            allCubesRb.isKinematic = false;
-
-            SpawnPositions();
-            MoveCameraChangeBg();
         }
 
-        if (!isLose && allCubesRb.velocity.magnitude > 0.1f)
+        IEnumerator ShowCubePlace()
         {
-            Destroy(cubeToPlace.gameObject);
-            isLose = true;
-            StopCoroutine(ShowCubePlace());
+            while (true)
+            {
+                SpawnPositions();
+                yield return new WaitForSeconds(cubeChangePlaceSpeed);
+            }
         }
 
-        mainCam.localPosition = Vector3.MoveTowards(mainCam.localPosition, 
-            new Vector3(mainCam.localPosition.x, camMoveToYPosition, mainCam.localPosition.z),
-            camMoveSpeed * Time.deltaTime);
-
-        if (Camera.main.backgroundColor != toCameraColor)
-            Camera.main.backgroundColor = Color.Lerp(Camera.main.backgroundColor, toCameraColor, Time.deltaTime / 1.5f);
-
-    }
-
-    IEnumerator ShowCubePlace()
-    {
-        while (true)
+        private void SpawnPositions()
         {
-            SpawnPositions();
-            yield return new WaitForSeconds(cubeChangePlaceSpeed);
+            List<Vector3> positions = new List<Vector3>();
+            if (IsPositionEmpty(new Vector3(nowCube.x + 1, nowCube.y, nowCube.z))
+                && nowCube.x + 1 != cubeToPlace.position.x)
+                positions.Add(new Vector3(nowCube.x + 1, nowCube.y, nowCube.z));
+            if (IsPositionEmpty(new Vector3(nowCube.x - 1, nowCube.y, nowCube.z))
+                && nowCube.x - 1 != cubeToPlace.position.x)
+                positions.Add(new Vector3(nowCube.x - 1, nowCube.y, nowCube.z));
+            if (IsPositionEmpty(new Vector3(nowCube.x, nowCube.y + 1, nowCube.z))
+                && nowCube.y + 1 != cubeToPlace.position.y)
+                positions.Add(new Vector3(nowCube.x, nowCube.y + 1, nowCube.z));
+            if (IsPositionEmpty(new Vector3(nowCube.x, nowCube.y - 1, nowCube.z))
+                && nowCube.y - 1 != cubeToPlace.position.y)
+                positions.Add(new Vector3(nowCube.x, nowCube.y - 1, nowCube.z));
+            if (IsPositionEmpty(new Vector3(nowCube.x, nowCube.y, nowCube.z + 1))
+                && nowCube.z + 1 != cubeToPlace.position.z)
+                positions.Add(new Vector3(nowCube.x, nowCube.y, nowCube.z + 1));
+            if (IsPositionEmpty(new Vector3(nowCube.x, nowCube.y, nowCube.z - 1))
+                && nowCube.z - 1 != cubeToPlace.position.z)
+                positions.Add(new Vector3(nowCube.x, nowCube.y, nowCube.z - 1));
+
+            if (positions.Count > 1)
+                cubeToPlace.position = positions[UnityEngine.Random.Range(0, positions.Count)];
+            else if (positions.Count == 0)
+                isLose = true;
+            else
+                cubeToPlace.position = positions[0];
         }
-    }
 
-    private void SpawnPositions()
-    {
-        List<Vector3> positions = new List<Vector3>();
-        if (IsPositionEmpty(new Vector3(nowCube.x + 1, nowCube.y, nowCube.z))
-            && nowCube.x +1 != cubeToPlace.position.x)
-            positions.Add(new Vector3(nowCube.x + 1, nowCube.y, nowCube.z));
-        if (IsPositionEmpty(new Vector3(nowCube.x - 1, nowCube.y, nowCube.z))
-            && nowCube.x - 1 != cubeToPlace.position.x)
-            positions.Add(new Vector3(nowCube.x - 1, nowCube.y, nowCube.z));
-        if (IsPositionEmpty(new Vector3(nowCube.x, nowCube.y + 1, nowCube.z))
-            && nowCube.y + 1 != cubeToPlace.position.y)
-            positions.Add(new Vector3(nowCube.x, nowCube.y + 1, nowCube.z));
-        if (IsPositionEmpty(new Vector3(nowCube.x, nowCube.y - 1, nowCube.z))
-            && nowCube.y - 1 != cubeToPlace.position.y)
-            positions.Add(new Vector3(nowCube.x, nowCube.y - 1, nowCube.z));
-        if (IsPositionEmpty(new Vector3(nowCube.x, nowCube.y, nowCube.z + 1))
-            && nowCube.z + 1 != cubeToPlace.position.z)
-            positions.Add(new Vector3(nowCube.x, nowCube.y, nowCube.z + 1));
-        if (IsPositionEmpty(new Vector3(nowCube.x, nowCube.y, nowCube.z - 1))
-            && nowCube.z - 1 != cubeToPlace.position.z)
-            positions.Add(new Vector3(nowCube.x, nowCube.y, nowCube.z - 1));
-
-        if (positions.Count > 1)
-            cubeToPlace.position = positions[UnityEngine.Random.Range(0, positions.Count)];
-        else if (positions.Count == 0)
-            isLose = true;
-        else
-            cubeToPlace.position = positions[0];
-    }
-
-    private bool IsPositionEmpty(Vector3 targetPos)
-    {
-        if (targetPos.y == 0)
-            return false;
-
-        foreach (Vector3 pos in allCubesPositions)
+        private bool IsPositionEmpty(Vector3 targetPos)
         {
-            if (pos.x == targetPos.x && pos.y == targetPos.y && pos.z == targetPos.z)
+            if (targetPos.y == 0)
                 return false;
-        }
-        return true;
-    }
 
-    private void MoveCameraChangeBg()
+            foreach (Vector3 pos in allCubesPositions)
+            {
+                if (pos.x == targetPos.x && pos.y == targetPos.y && pos.z == targetPos.z)
+                    return false;
+            }
+            return true;
+        }
+
+        private void MoveCameraChangeBg()
+        {
+            int maxX = 0, maxY = 0, maxZ = 0, maxHorizontal;
+            foreach (Vector3 pos in allCubesPositions)
+            {
+                if (Mathf.Abs(Convert.ToInt32(pos.x)) > maxX)
+                    maxX = Convert.ToInt32(pos.x);
+                if (Convert.ToInt32(pos.y) > maxY)
+                    maxY = Convert.ToInt32(pos.y);
+                if (Mathf.Abs(Convert.ToInt32(pos.z)) > maxZ)
+                    maxZ = Convert.ToInt32(pos.z);
+            }
+
+
+            maxY--;
+            if (PlayerPrefs.GetInt("score") < maxY)
+                PlayerPrefs.SetInt("score", maxY);
+
+            scoreTxt.text = "<size=40s>BEST SCORE:</size> " + PlayerPrefs.GetInt("score") + "\n<size=35s>score:</size> " + maxY;
+
+            camMoveToYPosition = 4f + nowCube.y - 1f;
+
+            maxHorizontal = maxX > maxZ ? maxX : maxZ;
+            if (maxHorizontal % 3 == 0 && prevCountMaxHorizontal != maxHorizontal)
+            {
+                mainCam.localPosition -= new Vector3(0, 0, 2.8f);
+                prevCountMaxHorizontal = maxHorizontal;
+            }
+
+            if (maxY >= 9)
+                toCameraColor = bgColors[2];
+            else if (maxY >= 6)
+                toCameraColor = bgColors[1];
+            else if (maxY >= 3)
+                toCameraColor = bgColors[0];
+        }
+
+    private void AddPossibleCubes(int till)
     {
-        int maxX = 0, maxY = 0, maxZ = 0, maxHorizontal;
-        foreach(Vector3 pos in allCubesPositions)
-        {
-            if (Mathf.Abs(Convert.ToInt32(pos.x)) > maxX)
-                maxX = Convert.ToInt32(pos.x);
-            if (Convert.ToInt32(pos.y) > maxY)
-                maxY = Convert.ToInt32(pos.y);
-            if (Mathf.Abs(Convert.ToInt32(pos.z)) > maxZ)
-                maxZ = Convert.ToInt32(pos.z);
-        }
-
-
-        maxY--;
-        if (PlayerPrefs.GetInt("score") < maxY)
-            PlayerPrefs.SetInt("score", maxY);
-
-        scoreTxt.text = "<size=40s>BEST SCORE:</size> " + PlayerPrefs.GetInt("score") + "\n<size=35s>score:</size> " + maxY;
-        
-        camMoveToYPosition = 4f + nowCube.y - 1f;
-
-        maxHorizontal = maxX > maxZ ? maxX : maxZ;
-        if (maxHorizontal % 3 == 0 && prevCountMaxHorizontal != maxHorizontal)
-        {
-            mainCam.localPosition -= new Vector3(0, 0, 2.8f);
-            prevCountMaxHorizontal = maxHorizontal;
-        }
-
-        if (maxY >= 9)
-            toCameraColor = bgColors[2];
-        else if (maxY >= 6)
-            toCameraColor = bgColors[1];
-        else if (maxY >= 3)
-            toCameraColor = bgColors[0];
+        for (int i = 0; i < till; i++)
+            possibleCubesToCreate.Add(cubesToCreate[i]);
     }
 
-}
+    }
 struct CubePos
 {
     public int x, y, z;

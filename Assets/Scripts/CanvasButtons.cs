@@ -45,19 +45,15 @@ public class CanvasButtons : MonoBehaviour
     {
         if (PlayerPrefs.GetString("music") == "Yes")
             GetComponent<AudioSource>().Play();
-        else
-        {
-            SceneManager.LoadScene(SceneManager.GetSceneByName("Shop").buildIndex);
-        }
+            
+        SceneManager.LoadScene("Shop");
     }
     public void CloseShop()
     {
         if (PlayerPrefs.GetString("music") == "Yes")
             GetComponent<AudioSource>().Play();
-        else
-        {
-            SceneManager.LoadScene(SceneManager.GetSceneByName("Shop").buildIndex);
-        }
+            
+        SceneManager.LoadScene("Main");
     }
 
     public void MusicWork()

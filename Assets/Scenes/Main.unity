@@ -530,7 +530,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: 8a39bb255aabee04f8228a5a290b69c6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
-  m_Pitch: 2.03
+  m_Pitch: 3
   Loop: 0
   Mute: 0
   Spatialize: 0
@@ -1440,7 +1440,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.16696854, y: -0.06418376, z: 0.002468476, w: 0.9838679}
-  m_LocalPosition: {x: 1.84, y: 6.27, z: -14.1}
+  m_LocalPosition: {x: 1.96, y: 6.22, z: -15.04}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1604,7 +1604,16 @@ MonoBehaviour:
   cubeChangePlaceSpeed: 0.5
   cubeToPlace: {fileID: 1973315466}
   scoreTxt: {fileID: 804897314}
-  cubeToCreate: {fileID: 1992262464}
+  cubesToCreate:
+  - {fileID: 2542945535722179124, guid: 82e22218c6995b74681f6040998b5447, type: 3}
+  - {fileID: 7632238256063335061, guid: 943d09695e78e684c838210330ba4aaa, type: 3}
+  - {fileID: 6145526606486502917, guid: d097314a06b4f0642b3a7a6c324125eb, type: 3}
+  - {fileID: 7153971935928655809, guid: f797223f64ee279428a6e854e57a0234, type: 3}
+  - {fileID: 3328343611477069499, guid: 61dc99b81c3f00246972e0b67aea44da, type: 3}
+  - {fileID: 8550507601489082096, guid: 0e5cadd23c7d4e448bb28b6d851c2a05, type: 3}
+  - {fileID: 7544591090636984671, guid: 409f7937a6d56d7428a482502ec9f4a2, type: 3}
+  - {fileID: 7499222282973744230, guid: 83c0f751d0ce03c45b458f2851d53b5b, type: 3}
+  - {fileID: 9017064998053549305, guid: a29e0d91d629ec443a7b3717e33b0fd2, type: 3}
   allCubes: {fileID: 1208216002}
   vfx: {fileID: 100000, guid: 3156817f64ec68948ad6bb26569b9ef5, type: 3}
   canvasStartPage:
@@ -2051,11 +2060,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1992262464 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2542945535722179124, guid: 82e22218c6995b74681f6040998b5447, type: 3}
-  m_PrefabInstance: {fileID: 2542945534929290823}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2000850036 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2542945535722179123, guid: 82e22218c6995b74681f6040998b5447, type: 3}
